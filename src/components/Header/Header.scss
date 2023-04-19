@@ -1,2 +1,26 @@
 @use "../../styles/partials/variables" as *;
 @use "../../styles/partials/mixins" as *;
+
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  &__link {
+    @include links;
+    @include mobilePageHeader;
+    font-family: recoleta, sans-serif;
+
+    margin: 1.5rem;
+    padding: 1rem 3.5rem;
+
+    @include glass;
+
+    transition: all 0.3s ease-in-out;
+
+    &:hover {
+      backdrop-filter: blur(0.75rem);
+      -webkit-backdrop-filter: blur(0.75rem);
+    }
+  }
+}

@@ -3,12 +3,22 @@ $desktop: 1280px;
 $tablet: 768px;
 
 // COLORS
-$primary: #1d1a22;
-$secondary: #f5f5f5;
+// $primary: #000000;
+// $secondary: #f5f5f5;
 
-$font-primary: #1d1a22;
-$font-secondary: #f5f5f5;
-$font-highlight: #2f2b35;
+// $font-primary: #e0e0e0;
+// $font-secondary: #000000;
+// $font-highlight: #505050;
+
+$primary: #000000;
+$secondary: #2d2d2d;
+
+$font-primary: #ffffff;
+$font-secondary: #d1d1d1;
+$font-highlight: #f0c808;
+
+$border: #3a3a3a;
+$accent: #f05454;
 
 $button-go-text: rgba(71, 255, 211, 1);
 $button-go-primary: rgba(71, 255, 211, 0.37);
