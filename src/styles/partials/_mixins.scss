@@ -1,0 +1,67 @@
+@use "./variables" as *;
+
+// SCREENS
+@mixin desktop {
+  @media screen and (min-width: $desktop) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media screen and (min-width: $tablet) {
+    @content;
+  }
+}
+
+// FONT STYLE
+@mixin textStyle($font-size, $line-height, $font-weight) {
+  font-size: $font-size;
+  line-height: $line-height;
+  font-weight: $font-weight;
+}
+
+// TABLET + DESKTOP FONT STYLE
+@mixin tabletPageHeader {
+  @include textStyle(3.3rem, 4.4rem, 700);
+}
+
+@mixin tabletSectionHeader {
+  @include textStyle(1.2rem, 2rem, 700);
+}
+
+@mixin tabletSubheader {
+  @include textStyle(1.4rem, 2.2rem, 700);
+}
+
+@mixin tabletBody {
+  @include textStyle(1.4rem, 2.2rem, 400);
+}
+
+@mixin tabletLabelsAndButtons {
+  @include textStyle(1.2rem, 2rem, 700);
+}
+
+// MOBILE FONT STYLE
+@mixin mobilePageHeader {
+  @include textStyle(2.4rem, 3.2rem, 700);
+}
+
+@mixin mobileSectionHeader {
+  @include textStyle(1.2rem, 2rem, 700);
+}
+
+@mixin mobileSubheader {
+  @include textStyle(1.3rem, 1.8rem, 700);
+}
+
+@mixin mobileBody {
+  @include textStyle(1.3rem, 1.8rem, 400);
+}
+
+@mixin mobileLabelsAndButtons {
+  @include textStyle(1rem, 2rem, 700);
+}
+
+@mixin tabletLabelsAndButtons {
+  @include textStyle(1.2rem, 2rem, 700);
+}
