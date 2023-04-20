@@ -1,2 +1,84 @@
 @use "../../styles/partials/variables" as *;
 @use "../../styles/partials/mixins" as *;
+
+.home {
+  @include flex(column, center, center);
+  @include mobileBody;
+  margin: 0 $mobile-gutter;
+  height: 100vh;
+
+  @include tablet {
+    @include body;
+    margin: 0 $gutter;
+  }
+
+  &__video {
+    position: fixed;
+    top: -8rem;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+
+  &__graphic {
+    position: fixed;
+    width: 150rem;
+    height: 150rem;
+    top: 0rem;
+    z-index: -1;
+
+    transition: all 0.5s ease-in-out;
+    opacity: 0.65;
+
+    @include tablet {
+      width: 200rem;
+      height: 200rem;
+      opacity: 0.5;
+    }
+  }
+}
+
+.brief {
+  @include flex(column, center, center);
+  margin: 2rem 0;
+
+  &__title {
+    @include mobilePageHeader;
+    border-left: 1px solid $secondary;
+    padding: 0 1rem;
+
+    @include tablet {
+      @include pageHeader;
+    }
+  }
+
+  &__description {
+    @include glass;
+    padding: 1rem;
+
+    text-align: center;
+
+    @include tablet {
+      @include body;
+      width: 75%;
+    }
+  }
+}
+
+.main {
+  @include flex(column, center, center);
+
+  &__start {
+    @include glass;
+    text-decoration: none;
+    border: none;
+    padding: 1rem;
+    color: $font-primary;
+    transition: all 0.25s linear;
+
+    &:hover {
+      scale: 1.05;
+    }
+  }
+}

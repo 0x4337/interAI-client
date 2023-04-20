@@ -72,9 +72,15 @@
 }
 
 @mixin glass {
-  border: 1px solid rgb(55 55 55);
-  border-radius: 0.5rem;
+  // border: 1px solid rgb(55 55 55);
   background: rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(0.55rem);
   -webkit-backdrop-filter: blur(0.55rem);
+}
+
+@mixin flex($direction, $justify, $align) {
+  display: flex;
+  flex-direction: $direction;
+  justify-content: $justify;
+  align-items: $align;
 }
