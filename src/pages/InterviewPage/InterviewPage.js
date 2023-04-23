@@ -1,5 +1,6 @@
 import "./InterviewPage.scss";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 import RecordRTC, { invokeSaveAsDialog } from "recordrtc";
 
 import axios from "axios";
@@ -10,9 +11,48 @@ const InterviewPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [recorder, setRecorder] = useState(null);
   const [recording, setRecording] = useState(false);
+  const [text, setText] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
+  const [roleLevel, setRoleLevel] = useState("");
+  const [conversationHistory, setConversationHistory] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  //   const handleCategorySelect = (category) => {
+  //     setSelectedCategory(category);
+  //   };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setConversationHistory([
+      {
+        role: "system",
+        content:
+          "You are an AI interviewer for a company. You are interviewing a candidate for a job based on the job description and role level initially provided. The candidate's responses will be provided by the user. You should start the interview by asking the candidate to introduce themselves, and then ask dynamic questions based on the candidate's responses or move onto a new question if needed. Once you feel you have enough data to conclude the interview, end the interview and give a score from 1-10, whether you would have hired them or not, and provide detailed feedback on the interview.",
+      },
+      {
+        role: "user",
+        content: `Job description: ${jobDescription}, Role level: ${roleLevel}`,
+      },
+    ]);
+  };
+
+  const generateGPT4Response = async (updatedConversationHistory) => {
+    try {
+      const { data } = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/openai/generate`,
+        {
+          messages: updatedConversationHistory || conversationHistory,
+        }
+      );
+      return data.response;
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
+    setRoleLevel(category);
   };
 
   const getCategoryClassName = (category) => {
@@ -22,7 +62,60 @@ const InterviewPage = () => {
     );
   };
 
+  useEffect(() => {
+    if (
+      conversationHistory.length > 0 &&
+      conversationHistory.slice(-1)[0].role === "user"
+    ) {
+      const fetchAssistantResponse = async () => {
+        const assistantResponse = await generateGPT4Response();
+        setConversationHistory([
+          ...conversationHistory,
+          { role: "assistant", content: assistantResponse },
+        ]);
+      };
+      fetchAssistantResponse();
+    }
+  }, [conversationHistory]);
+
+  //   useEffect(() => {
+  //     if (text) {
+  //       // Update conversation history when the user's response is transcribed
+  //       setConversationHistory([
+  //         ...conversationHistory,
+  //         { role: "user", content: text },
+  //       ]);
+
+  //       // Call GPT-4 with the updated conversation history
+  //       setLoading(true);
+  //       generateGPT4Response();
+  //     }
+  //   }, [text]);
+
+  //   const generateGPT4Response = async () => {
+  //     try {
+  //       const { data } = await axios.post(
+  //         `${process.env.REACT_APP_BACKEND_URL}/api/openai/generate`,
+  //         {
+  //           messages: conversationHistory,
+  //         }
+  //       );
+  //       // Update conversation history with GPT-4 response
+  //       setConversationHistory([
+  //         ...conversationHistory,
+  //         { role: "assistant", content: data.response },
+  //       ]);
+  //       setLoading(false);
+
+  //       // TODO: Call Eleven Labs API to convert GPT-4 response to speech
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //   };
+
   const startRecording = () => {
+    setText("");
+
     navigator.mediaDevices
       .getUserMedia({ audio: true })
       .then((stream) => {
@@ -49,16 +142,52 @@ const InterviewPage = () => {
       formData.append("audio", recorder.getBlob(), "audio.webm");
 
       try {
-        const response = await axios.post(
-          `${process.env.REACT_APP_BACKEND_URL}/api/openai/generate`,
+        const { data } = await axios.post(
+          `${process.env.REACT_APP_BACKEND_URL}/api/openai/whisper`,
           formData
         );
-        console.log(response);
+        console.log(data.whisper.text);
+        setText(data.whisper.text);
       } catch (error) {
         console.log(error);
       }
     });
   };
+
+  //   const handleSubmit = async (e) => {
+  //     e.preventDefault();
+  //     if (!jobDescription || !roleLevel) {
+  //       alert("Please fill in all fields");
+  //       return;
+  //     }
+  //     console.log("Job Description:", jobDescription);
+  //     console.log("Role Level:", roleLevel);
+
+  //     // Start the interview with the job description and role level
+  //     setConversationHistory([
+  //       {
+  //         role: "system",
+  //         content:
+  //           "You are an AI interviewer for a company. You are interviewing a candidate for a job based on the job description and role level initially provided. The candidate's responses will be provided by the user. You should start the interview by asking the candidate to introduce themselves, and then ask dynamic questions based on the candidate's responses or move onto a new question if needed. Once you feel you have enough data to conclude the interview, end the interview and give a score from 1-10, whether you would have hired them or not, and provide detailed feedback on the interview.",
+  //       },
+  //       {
+  //         role: "user",
+  //         content: `Job description: ${jobDescription}, Role level: ${roleLevel}`,
+  //       },
+  //     ]);
+
+  // Generate the first response from GPT-4
+  //     generateGPT4Response();
+  //   };
+
+  useEffect(() => {
+    if (text) {
+      setConversationHistory([
+        ...conversationHistory,
+        { role: "user", content: text },
+      ]);
+    }
+  }, [text]);
 
   // TODO:
   // 1. When a user clicks start, check what category they selected.
@@ -78,41 +207,88 @@ const InterviewPage = () => {
       </video>
       <h1 className="interview__title">InterAI</h1>
 
-      <div className="info">
+      {/* <div className="info">
         <p className="info__text">
-          Select from one of the following interview categories, then press
-          start.
+          Describe the job role in a few short sentances. This will be given as
+          additional context to the AI. For example: "A junior software
+          engineering role at a fintech startup looking for a team player and to
+          be paid in equity."
         </p>
 
         <div className="info__categories">
           <div
-            onClick={() => handleCategorySelect("software")}
-            className={getCategoryClassName("software")}
+            onClick={() => handleCategorySelect("easy")}
+            className={getCategoryClassName("easy")}
           >
-            <p className="info__subtitle">Software Engineering •</p>
+            <p className="info__subtitle">Easy •</p>
             <p className="info__level">Junior</p>
           </div>
           <div
-            onClick={() => handleCategorySelect("ui")}
-            className={getCategoryClassName("ui")}
+            onClick={() => handleCategorySelect("mid")}
+            className={getCategoryClassName("mid")}
           >
-            <p className="info__subtitle">UI/UX Designer •</p>
-            <p className="info__level">Junior</p>
+            <p className="info__subtitle">Average •</p>
+            <p className="info__level">Mid</p>
           </div>
           <div
-            onClick={() => handleCategorySelect("project")}
-            className={getCategoryClassName("project")}
+            onClick={() => handleCategorySelect("hard")}
+            className={getCategoryClassName("hard")}
           >
-            <p className="info__subtitle">Project Management •</p>
-            <p className="info__level">Junior</p>
+            <p className="info__subtitle">Hard •</p>
+            <p className="info__level">Senior</p>
           </div>
         </div>
+      </div> */}
+
+      <div className="info">
+        <form className="info__form" onSubmit={handleSubmit}>
+          <p className="info__text">
+            Describe the job role in a few short sentences. This will be given
+            as additional context to the AI.
+          </p>
+          <textarea
+            className="info__textarea"
+            value={jobDescription}
+            placeholder="e.g: Software engineering role in a fintech startup, looking for a
+            team player to be paid in equity..."
+            onChange={(e) => setJobDescription(e.target.value)}
+          />
+          {/* <p className="info__text">Select the level of the role:</p> */}
+          <div className="info__categories">
+            <div
+              onClick={() => handleCategorySelect("junior")}
+              className={getCategoryClassName("junior")}
+            >
+              <p className="info__subtitle">Easy •</p>
+              <p className="info__level">Junior</p>
+            </div>
+            <div
+              onClick={() => handleCategorySelect("mid")}
+              className={getCategoryClassName("mid")}
+            >
+              <p className="info__subtitle">Average •</p>
+              <p className="info__level">Mid</p>
+            </div>
+            <div
+              onClick={() => handleCategorySelect("senior")}
+              className={getCategoryClassName("senior")}
+            >
+              <p className="info__subtitle">Hard •</p>
+              <p className="info__level">Senior</p>
+            </div>
+          </div>
+          <button className="info__submit" type="submit" disabled={loading}>
+            Start Interview
+          </button>
+        </form>
       </div>
 
       <div className="start">
         <button
           className={
-            "start__button" + (selectedCategory ? " start__button--active" : "")
+            // "start__button" +
+            // (jobDescription && roleLevel ? " start__button--active" : "")
+            "start__button"
           }
           onClick={recording ? stopRecording : startRecording}
         >

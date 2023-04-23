@@ -55,6 +55,29 @@
 .info {
   @include flex(column, center, center);
 
+  &__form {
+    @include flex(column, center, center);
+  }
+
+  &__textarea {
+    @include glass;
+    color: $font-primary;
+    font-family: lalo;
+    outline: none;
+    padding: 1rem;
+
+    text-align: center;
+    resize: none;
+    height: 10rem;
+    width: 100%;
+    border: 1px solid $border;
+    transition: all 0.25s linear;
+
+    &:focus {
+      border: 1px solid $secondary;
+    }
+  }
+
   &__text {
     @include glass;
     padding: 1rem;
@@ -77,14 +100,15 @@
     @include flex(row, space-between, null);
     flex-wrap: wrap;
     width: 100%;
+    margin: 1rem 0;
   }
 
   &__category {
     @include flex(null, null, null);
     @include glass;
-    margin: 1rem;
+    margin: 0.5rem;
     padding: 0 1rem;
-    border: 1px solid transparent;
+    border: 1px solid $border;
     transition: all 0.25s linear;
     cursor: pointer;
   }
@@ -100,6 +124,17 @@
 
   &__level {
     opacity: 0.5;
+  }
+
+  &__submit {
+    @include glass;
+    cursor: pointer;
+    font-family: lalo;
+    color: $font-primary;
+    margin: 1rem 0;
+    padding: 1rem 5rem;
+    border: 1px solid $border;
+    transition: all 0.25s linear;
   }
 }
 
