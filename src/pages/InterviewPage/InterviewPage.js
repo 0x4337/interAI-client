@@ -6,6 +6,11 @@ import RecordRTC, { invokeSaveAsDialog } from "recordrtc";
 import axios from "axios";
 
 import morph from "../../assets/objects/morph.mp4";
+import swirl from "../../assets/objects/Object_9_(iridescent).png";
+import vector from "../../assets/vectors/Abstract Shape 01 (white on transparent).png";
+import vector2 from "../../assets/vectors/Abstract Shape 38 (white on transparent).png";
+import vector3 from "../../assets/vectors/Abstract Shape 20 (white on transparent).png";
+import vector4 from "../../assets/vectors/Abstract Shape 09 (white on transparent).png";
 
 const InterviewPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -15,7 +20,7 @@ const InterviewPage = () => {
   const [jobDescription, setJobDescription] = useState("");
   const [roleLevel, setRoleLevel] = useState("");
   const [conversationHistory, setConversationHistory] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [started, setStarted] = useState(false);
 
   //   const handleCategorySelect = (category) => {
   //     setSelectedCategory(category);
@@ -23,11 +28,12 @@ const InterviewPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setStarted(true);
     setConversationHistory([
       {
         role: "system",
         content:
-          "You are an AI interviewer for a company. You are interviewing a candidate for a job based on the job description and role level initially provided. The candidate's responses will be provided by the user. You should start the interview by asking the candidate to introduce themselves, and then ask dynamic questions based on the candidate's responses or move onto a new question if needed. Once you feel you have enough data to conclude the interview, end the interview and give a score from 1-10, whether you would have hired them or not, and provide detailed feedback on the interview.",
+          "You are an AI interviewer for a company. You are interviewing a candidate for a job based on the job description and role level initially provided. The candidate's responses will be provided by the user. You should start the interview by asking the candidate to introduce themselves, and then ask dynamic questions based on the candidate's responses or move onto a new question if needed. Depending on the role level, adjust the complexity / toughness of your questions, perhaps dig into their responses more. Once you feel you have enough data to conclude the interview, end the interview and give an honest score from 1-10, whether you would have hired them or not, and provide detailed and honest feedback on the interview, avoid discussing the things they were good at, instead mention the things they could have improved.",
       },
       {
         role: "user",
@@ -45,6 +51,22 @@ const InterviewPage = () => {
         }
       );
       return data.response;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const playSynthesizedSpeech = async (text) => {
+    try {
+      // Call the Eleven Labs API to convert text to speech
+      const { data } = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/elevenlabs/speech`,
+        { text }
+      );
+
+      // Play the synthesized speech
+      const audio = new Audio(`data:audio/mpeg;base64,${data.audio_data}`);
+      audio.play();
     } catch (error) {
       console.log(error);
     }
@@ -69,6 +91,8 @@ const InterviewPage = () => {
     ) {
       const fetchAssistantResponse = async () => {
         const assistantResponse = await generateGPT4Response();
+
+        await playSynthesizedSpeech(assistantResponse);
         setConversationHistory([
           ...conversationHistory,
           { role: "assistant", content: assistantResponse },
@@ -202,9 +226,18 @@ const InterviewPage = () => {
 
   return (
     <section className="interview">
-      <video className="interview__video" autoPlay loop muted>
+      {/* <video className="interview__video" autoPlay loop muted>
         <source src={morph} type="video/mp4" />
-      </video>
+      </video> */}
+      {/* <img
+        className="interview__swirl"
+        src={swirl}
+        alt="purple swirl background graphic"
+      /> */}
+      {/* <img src={vector} alt="globe vector" className="interview__vector" /> */}
+      {/* <img src={vector2} alt="globe vector" className="interview__vector1" /> */}
+      {/* <img src={vector3} alt="globe vector" className="interview__vector2" /> */}
+      <img src={vector4} alt="globe vector" className="interview__vector3" />
       <h1 className="interview__title">InterAI</h1>
 
       {/* <div className="info">
@@ -277,8 +310,18 @@ const InterviewPage = () => {
               <p className="info__level">Senior</p>
             </div>
           </div>
-          <button className="info__submit" type="submit" disabled={loading}>
-            Start Interview
+          <button
+            className={
+              conversationHistory
+                ? "info__submit info__submit--active"
+                : "info__submit"
+            }
+            type="submit"
+          >
+            {
+              // If its been clicked, show loading, otherwise show start
+              started ? "Restart Interview" : "Start Interview"
+            }
           </button>
         </form>
       </div>
@@ -288,7 +331,8 @@ const InterviewPage = () => {
           className={
             // "start__button" +
             // (jobDescription && roleLevel ? " start__button--active" : "")
-            "start__button"
+            // "start__button"
+            recording ? "start__button start__button--active" : "start__button"
           }
           onClick={recording ? stopRecording : startRecording}
         >
